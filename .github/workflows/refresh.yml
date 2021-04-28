@@ -1,25 +1,38 @@
 on:
+  push:
+    branches:
+      - test
   schedule:
-    - cron:  '50 2,10,14,21 * * *'
+    - cron: "50 9,23 * * *"
+
 jobs:
-  job1:
+  refresh:
     runs-on: ubuntu-latest
-    container: thohan88/covid19-nor-data
     steps:
-    - uses: actions/checkout@master
-    - name: Create local changes
-      env:
-        HDIR_API_KEY: ${{ secrets.HDIR_API_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        Rscript -e 'source("code/refresh_files.R")'
-    - name: Commit files
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add .
-        git commit -m "Scheduled data update" -a
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: install Python packages
+        run: |
+          python3 -m pip install --upgrade pandas requests openpyxl
+      - name: Create local changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 code/04_fhi_daily_reports/01_get_number_of_tests.py
+      - name: Show diff
+        run: |
+          git diff
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Scheduled data update"
+      - name: Push changes
+        run: |
+          git push origin master
