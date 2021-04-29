@@ -24,6 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 code/04_fhi_daily_reports/01_get_number_of_tests.py
+          python3 code/04_fhi_daily_reports/02_get_number_of_deaths.py
       - name: Show diff
         run: |
           git diff
